@@ -1236,6 +1236,32 @@ class RouteTest extends TestCase
     }
 
     /**
+     * Test double encoded characters
+     */
+    public function testParseDoubleEncodedCharaclers()
+    {
+        $route = new Route(
+            '/:controller/:slug',
+            ['action' => 'view']
+        );
+        $route->compile();
+
+        // Double encoded
+        $result = $route->parse('/posts/s%257Cug', 'GET');
+        $this->assertEquals('posts', $result['controller']);
+        $this->assertEquals('view', $result['action']);
+        $this->assertEquals('s%7Cug', $result['slug']);
+
+        // Double encoded but from ServerRequest
+        $request = new ServerRequest(['url' => '/sign-in?redirect=/posts/s%257Cug']);
+
+        $result = $route->parse($request->getQuery('redirect'), 'GET');
+        $this->assertEquals('posts', $result['controller']);
+        $this->assertEquals('view', $result['action']);
+        $this->assertEquals('s|ug', $result['slug']);
+    }
+
+    /**
      * Test numerically indexed defaults, get appended to pass
      *
      * @return void
